@@ -1,16 +1,29 @@
 # Huawei API Input plugin
 
-This input plugin will gather huawei api data
+This input plugin will gather huawei data
 
 ### Configuration:
 
 ```
 [[inputs.huawei_hilink]]
 	# List of devices
-	DevicesAddress = ["http://192.168.8.1/"] # require
-	
-	# Collection of data to gather
-	ApiUrl = ["api/device/signal", "api/device/information"] # require
+	DevicesAddress = ["http://192.168.8.1"] # require
+	[[inputs.huawei_hilink.module]]
+		Url = "api/device/signal"
+		Fields = ["pci", "rsrq", "rsrp", "rssi", "sinr" ]
+	[[inputs.huawei_hilink.module]]
+		Url = "api/monitoring/status"
+		Fields = [ "CurrentNetworkType", "CurrentNetworkTypeEx", "ConnectionStatus", "maxsignal", "SignalIcon"]
+	[[inputs.huawei_hilink.module]]
+		Url = "api/device/information"
+		Fields = ["DeviceName"]
+		Is_tag = true
+	[[inputs.huawei_hilink.module]]	
+		Url = "api/monitoring/traffic-statistics"
+		Fields = ["TotalUpload", "TotalDownload" ]
+	[[inputs.huawei_hilink.module]]
+		Url = "api/monitoring/month_statistics"
+		Fields = ["CurrentMonthDownload", "CurrentMonthUpload"]
 ```
 
 ### Tags:

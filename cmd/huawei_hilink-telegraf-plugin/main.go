@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/marianob85/huawei-hilink-telegraf-plugin/plugins/inputs/huawei_hilink"
+	_ "github.com/marianob85/huawei_hilink-telegraf-plugin/plugins/inputs/huawei_hilink"
 	"github.com/influxdata/telegraf/plugins/common/shim"
 )
 

@@ -1,4 +1,4 @@
-module github.com/marianob85/huawei-hilink-telegraf-plugin
+module github.com/marianob85/huawei_hilink-telegraf-plugin
 
 go 1.15
 

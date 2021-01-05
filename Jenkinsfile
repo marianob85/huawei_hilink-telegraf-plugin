@@ -9,7 +9,6 @@ properties(
 		)
 	]
 )
-
 pipeline
 {
 	agent { 
@@ -19,6 +18,9 @@ pipeline
 	}
 	options {
 		skipDefaultCheckout true
+	}
+	environment {
+		GITHUB_TOKEN = credentials('marianob85-github-jenkins')
 	}
 	
 	stages
@@ -30,20 +32,18 @@ pipeline
 				dir('ohm')
 				{
 					checkout scm
+					script {
+						env.GITHUB_REPO = sh(script: 'basename $(git remote get-url origin) .git', returnStdout: true).trim()
+					}
 					sh '''
 						export PATH=$PATH:/usr/local/go/bin
 						export GOPATH=${WORKSPACE}
 						make package
 					'''
 					archiveArtifacts artifacts: 'build/dist/**', onlyIfSuccessful: true,  fingerprint: true
-					//stash includes: 'build/dist/**', name: 'build'
+					stash includes: 'build/dist/**', name: 'build'
 				}
 			}
-			post {
-                always {
-					cleanWs()
-                }
-            }
 		}
 		stage('Test') 
 		{
@@ -59,45 +59,36 @@ pipeline
 					'''
 				}
       		}
-			post {
-                always {
-					cleanWs()
-                }
-            }
 		}
 		
-		stage ('Release') {
+		stage('Release') {
 			when {
 				buildingTag()
 			}
-
-			environment {
-				GITHUB_TOKEN = credentials('marianob85-github-jenkins')
-			}
-
 			steps {
 				dir('ohm')
 				{
-					checkout scm
+					unstash 'build'
 					sh '''
 						export GOROOT=/usr/local/go
-						export PATH=$PATH:$GOROOT/bin
 						export GOPATH=${WORKSPACE}
-						goreleaser
+						export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+						go get github.com/github-release/github-release
+						github-release release --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${TAG_NAME}
+						for filename in build/dist/*; do
+							[ -e "$filename" ] || continue
+							github-release upload --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${filename} --file ${filename}
+						done
 					'''
-					archiveArtifacts artifacts: 'dist/*', onlyIfSuccessful: true,  fingerprint: true
-					//stash includes: 'dist/*', name: 'tag'
 				}
 			}
-			post {
-                always {
-					cleanWs()
-                }
-            }
 		}
 	}
 	post 
 	{ 
+		always {
+			cleanWs()
+		}
         failure { 
             notifyFailed()
         }

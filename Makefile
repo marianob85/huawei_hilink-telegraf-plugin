@@ -59,7 +59,6 @@ GOFMT ?= $(shell gofmt -l -s $(filter-out plugins/parsers/influx/machine.go, $(G
 prefix ?= /usr/local
 bindir ?= $(prefix)/bin
 sysconfdir ?= $(prefix)/etc
-localstatedir ?= $(prefix)/var
 pkgdir ?= build/dist
 
 .PHONY: all
@@ -158,11 +157,10 @@ clean:
 install: $(buildbin)
 	@mkdir -pv $(DESTDIR)$(bindir)
 	@mkdir -pv $(DESTDIR)$(sysconfdir)
-	@mkdir -pv $(DESTDIR)$(localstatedir)
+	@if [ $(GOOS) != "windows" ]; then mkdir -pv $(DESTDIR)$(sysconfdir)/telegraf; fi
 	@cp -fv $(buildbin) $(DESTDIR)$(bindir)
-	@if [ $(GOOS) != "windows" ]; then cp -fv etc/huawei_hilink-telegraf-plugin.conf $(DESTDIR)$(sysconfdir)/telegraf/huawei_hilink-telegraf-plugin.conf$(conf_suffix); fi
-	@if [ $(GOOS) = "windows" ]; then cp -fv etc/huawei_hilink-telegraf-plugin.conf $(DESTDIR)/huawei_hilink-telegraf-plugin.conf; fi
-	@if [ $(GOOS) = "linux" ]; then scripts/check-dynamic-glibc-versions.sh $(buildbin) $(glibc_version); fi
+	@if [ $(GOOS) != "windows" ]; then cp -fv etc/huawei_hilink-telegraf-plugin.config $(DESTDIR)$(sysconfdir)/telegraf/huawei_hilink-telegraf-plugin.config$(conf_suffix); fi
+	@if [ $(GOOS) = "windows" ]; then cp -fv etc/huawei_hilink-telegraf-plugin.config $(DESTDIR)/huawei_hilink-telegraf-plugin.config; fi
 
 # Telegraf build per platform.  This improves package performance by sharing
 # the bin between deb/rpm/tar packages over building directly into the package
@@ -230,10 +228,10 @@ $(rpms):
 		--input-type dir \
 		--output-type rpm \
 		--vendor InfluxData \
-		--url https://github.com/marianob85/huawei-hilink-telegraf-plugin \
+		--url https://github.com/marianob85/huawei_hilink-telegraf-plugin \
 		--license MIT \
-		--maintainer marianob85@gmail.com \
-		--config-files /etc/huawei_hilink-telegraf-plugin.conf \
+		--maintainer mariusz.brzeski@manobit.com \
+		--config-files /etc/telegraf/huawei_hilink-telegraf-plugin.config \
 		--description "Plugin-driven server agent for reporting metrics into InfluxDB." \
 		--depends coreutils \
 		--depends shadow-utils \
@@ -264,10 +262,10 @@ $(debs):
 		--input-type dir \
 		--output-type deb \
 		--vendor InfluxData \
-		--url https://github.com/marianob85/huawei-hilink-telegraf-plugin \
+		--url https://github.com/marianob85/huawei_hilink-telegraf-plugin \
 		--license MIT \
-		--maintainer marianob85@gmail.com \
-		--config-files /etc/huawei_hilink-telegraf-plugin.conf \
+		--maintainer mariusz.brzeski@manobit.com \
+		--config-files /etc/telegraf/huawei_hilink-telegraf-plugin.config.sample \
 		--description "Plugin-driven server agent for reporting metrics into InfluxDB." \
 		--name huawei_hilink-telegraf-plugin \
 		--version $(version) \
@@ -338,22 +336,18 @@ $(tars):
 %windows_i386.zip %windows_amd64.zip: export prefix =
 %windows_i386.zip %windows_amd64.zip: export bindir = $(prefix)
 %windows_i386.zip %windows_amd64.zip: export sysconfdir = $(prefix)
-%windows_i386.zip %windows_amd64.zip: export localstatedir = $(prefix)
 %windows_i386.zip %windows_amd64.zip: export EXEEXT := .exe
 
 %.deb: export pkg := deb
 %.deb: export prefix := /usr
 %.deb: export conf_suffix := .sample
 %.deb: export sysconfdir := /etc
-%.deb: export localstatedir := /var
 %.rpm: export pkg := rpm
 %.rpm: export prefix := /usr
 %.rpm: export sysconfdir := /etc
-%.rpm: export localstatedir := /var
 %.tar.gz: export pkg := tar
 %.tar.gz: export prefix := /usr
 %.tar.gz: export sysconfdir := /etc
-%.tar.gz: export localstatedir := /var
 %.zip: export pkg := zip
 %.zip: export prefix := /
 
