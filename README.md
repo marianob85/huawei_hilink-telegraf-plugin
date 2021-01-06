@@ -2,6 +2,15 @@
 
 This input plugin will gather huawei data
 
+### Install Instructions 
+
+To integrate with telegraf, extend the telegraf.conf using the following example
+```
+[[inputs.execd]]
+   command = ["/path/to/huawei_hilink-telegraf-plugin", "-config", "/path/to/huawei_hilink-telegraf-plugin.config"]
+   signal = "STDIN"
+```
+
 ### Configuration:
 
 ```
