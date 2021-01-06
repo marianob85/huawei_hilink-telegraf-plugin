@@ -43,8 +43,8 @@ pipeline
 							export GOPATH=${l_workspace}
 							make package
 						'''
-						archiveArtifacts artifacts: 'build/dist/**', onlyIfSuccessful: true,  fingerprint: true
-						stash includes: 'build/dist/**', name: 'build'
+						archiveArtifacts artifacts: 'build/**', onlyIfSuccessful: true,  fingerprint: true
+						stash includes: 'build/dist/**', name: 'dist'
 					}
 				}
 			}
@@ -89,7 +89,7 @@ pipeline
 			steps {
 				ws("${env.l_workspace}"){
 					dir('ohm'){
-						unstash 'build'
+						unstash 'dist'
 						sh '''
 							export GOROOT=/usr/local/go
 							export GOPATH=${l_workspace}
