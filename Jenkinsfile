@@ -40,7 +40,7 @@ pipeline
 						}
 						sh '''
 							export PATH=$PATH:/usr/local/go/bin
-							export GOPATH=${env.l_workspace}
+							export GOPATH=${l_workspace}
 							make package
 						'''
 						archiveArtifacts artifacts: 'build/dist/**', onlyIfSuccessful: true,  fingerprint: true
@@ -66,7 +66,7 @@ pipeline
 						sh '''
 							export GOROOT=/usr/local/go
 							export PATH=$PATH:$GOROOT/bin
-							export GOPATH=${env.l_workspace}
+							export GOPATH=${l_workspace}
 							make test
 						'''
 					}
@@ -92,7 +92,7 @@ pipeline
 						unstash 'build'
 						sh '''
 							export GOROOT=/usr/local/go
-							export GOPATH=${env.l_workspace}
+							export GOPATH=${l_workspace}
 							export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 							go get github.com/github-release/github-release
 							github-release release --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${TAG_NAME}
