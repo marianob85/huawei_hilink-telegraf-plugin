@@ -88,7 +88,7 @@ pipeline
 	post 
 	{ 
 		always {
-			cleanWs()
+			cleanWs disableDeferredWipeout: true
 		}
         failure { 
             notifyFailed()
