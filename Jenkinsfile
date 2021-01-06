@@ -77,7 +77,8 @@ pipeline
 						github-release release --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${TAG_NAME}
 						for filename in build/dist/*; do
 							[ -e "$filename" ] || continue
-							github-release upload --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${filename} --file ${filename}
+							basefilename=$(basename "$filename")
+							github-release upload --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${basefilename} --file ${filename}
 						done
 					'''
 				}
