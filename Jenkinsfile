@@ -44,6 +44,12 @@ pipeline
 					stash includes: 'build/dist/**', name: 'build'
 				}
 			}
+			post 
+			{ 
+				always {
+					cleanWs disableDeferredWipeout: true
+				}
+			}
 		}
 		stage('Test') 
 		{
@@ -59,6 +65,12 @@ pipeline
 					'''
 				}
       		}
+			post 
+			{ 
+				always {
+					cleanWs disableDeferredWipeout: true
+				}
+			}
 		}
 		
 		stage('Release') {
@@ -83,13 +95,16 @@ pipeline
 					'''
 				}
 			}
+			post 
+			{ 
+				always {
+					cleanWs disableDeferredWipeout: true
+				}
+			}
 		}
 	}
 	post 
 	{ 
-		always {
-			cleanWs disableDeferredWipeout: true
-		}
         failure { 
             notifyFailed()
         }
