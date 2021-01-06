@@ -33,17 +33,19 @@ pipeline
 			steps
 			{
 				ws("${env.l_workspace}"){
-					checkout scm
-					script {
-						env.GITHUB_REPO = sh(script: 'basename $(git remote get-url origin) .git', returnStdout: true).trim()
+					dir('ohm'){
+						checkout scm
+						script {
+							env.GITHUB_REPO = sh(script: 'basename $(git remote get-url origin) .git', returnStdout: true).trim()
+						}
+						sh '''
+							export PATH=$PATH:/usr/local/go/bin
+							export GOPATH=${env.l_workspace}
+							make package
+						'''
+						archiveArtifacts artifacts: 'build/dist/**', onlyIfSuccessful: true,  fingerprint: true
+						stash includes: 'build/dist/**', name: 'build'
 					}
-					sh '''
-						export PATH=$PATH:/usr/local/go/bin
-						export GOPATH=${WORKSPACE}
-						make package
-					'''
-					archiveArtifacts artifacts: 'build/dist/**', onlyIfSuccessful: true,  fingerprint: true
-					stash includes: 'build/dist/**', name: 'build'
 				}
 			}
 			post {   
@@ -59,13 +61,15 @@ pipeline
 			}
 			steps {
 				ws("${env.l_workspace}"){
-					checkout scm
-					sh '''
-						export GOROOT=/usr/local/go
-						export PATH=$PATH:$GOROOT/bin
-						export GOPATH=${WORKSPACE}
-						make test
-					'''
+					dir('ohm'){
+						checkout scm
+						sh '''
+							export GOROOT=/usr/local/go
+							export PATH=$PATH:$GOROOT/bin
+							export GOPATH=${env.l_workspace}
+							make test
+						'''
+					}
 				}
       		}
 			post {   
@@ -84,19 +88,21 @@ pipeline
 			}
 			steps {
 				ws("${env.l_workspace}"){
-					unstash 'build'
-					sh '''
-						export GOROOT=/usr/local/go
-						export GOPATH=${WORKSPACE}
-						export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-						go get github.com/github-release/github-release
-						github-release release --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${TAG_NAME}
-						for filename in build/dist/*; do
-							[ -e "$filename" ] || continue
-							basefilename=$(basename "$filename")
-							github-release upload --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${basefilename} --file ${filename}
-						done
-					'''
+					dir('ohm'){
+						unstash 'build'
+						sh '''
+							export GOROOT=/usr/local/go
+							export GOPATH=${env.l_workspace}
+							export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+							go get github.com/github-release/github-release
+							github-release release --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${TAG_NAME}
+							for filename in build/dist/*; do
+								[ -e "$filename" ] || continue
+								basefilename=$(basename "$filename")
+								github-release upload --user marianob85 --repo ${GITHUB_REPO} --tag ${TAG_NAME} --name ${basefilename} --file ${filename}
+							done
+						'''
+					}
 				}
 			}
 			post {   
@@ -135,7 +141,7 @@ def notifyFailed() {
 }
 
 def createWSPath() {
-	return  "${env.BRANCH_NAME}/${env.STAGE_NAME}/${env.BUILD_NUMBER}".replace('%2F', '_').replace(' ', '_')
+	return  "${env.WORKSPACE}/${env.BRANCH_NAME}/${env.STAGE_NAME}/${env.BUILD_NUMBER}".replace('%2F', '_').replace(' ', '_')
 }
 
 def cleanWSPath() {
