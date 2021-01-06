@@ -1,6 +1,6 @@
 # Huawei API Input plugin
 
-This input plugin will gather huawei data
+This input plugin will gather huawei hilink modem data
 
 ### Install Instructions 
 
